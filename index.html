@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>바이브코딩 체험부스 대기 현황</title>
+<meta name="description" content="노원수학문화축전 · 인덕과학기술고등학교 바이브코딩 체험부스 대기자 관리 화면">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=JetBrains+Mono:wght@500;700&family=Noto+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="masthead-titles">
+      <span class="eyebrow">2026 노원수학문화축전</span>
+      <h1>인덕과학기술고등학교 <span class="accent">바이브코딩</span> 체험부스</h1>
+      <p class="masthead-sub">대기자 관리 — 번호표를 발급하고 순서대로 호출하세요</p>
+    </div>
+    <div class="masthead-clock">
+      <span class="live-dot" aria-hidden="true"></span>
+      <span id="clock">00:00:00</span>
+    </div>
+  </header>
+
+  <section class="stats" aria-label="현황 요약">
+    <div class="stat">
+      <span class="n" id="stat-waiting">0</span>
+      <span class="l">대기 인원</span>
+    </div>
+    <div class="stat">
+      <span class="n" id="stat-serving">—</span>
+      <span class="l">현재 진행중 번호</span>
+    </div>
+    <div class="stat">
+      <span class="n" id="stat-served">0</span>
+      <span class="l">오늘 완료</span>
+    </div>
+    <div class="stat">
+      <span class="n" id="stat-issued">0</span>
+      <span class="l">오늘 발급된 번호표</span>
+    </div>
+  </section>
+
+  <div class="board">
+
+    <div class="panel">
+      <h2>진행 현황</h2>
+      <div class="serving-card">
+        <span class="serving-label">Now Serving</span>
+        <span id="serving-number" class="serving-number">대기 중인 참가자 없음</span>
+        <span id="serving-name" class="serving-name"></span>
+        <span id="serving-meta" class="serving-meta">"다음 참가자 호출"을 눌러 시작하세요</span>
+        <div class="serving-actions">
+          <button id="btn-call-next" class="btn-accent" type="button">다음 참가자 호출</button>
+          <button id="btn-complete" class="btn-ghost" type="button" disabled>체험 완료 처리</button>
+        </div>
+      </div>
+
+      <h2 style="margin-top:6px">번호표 발급</h2>
+      <form id="issue-form" class="issue-form">
+        <input id="issue-name" type="text" placeholder="이름 또는 닉네임 (선택)" maxlength="24" autocomplete="off">
+        <button class="btn-primary" type="submit">번호표 발급</button>
+      </form>
+
+      <h2 style="margin-top:6px">오늘 완료된 체험 <span class="pill pill-good" id="history-count-badge">0건</span></h2>
+      <ul id="history-list" class="history-list"></ul>
+    </div>
+
+    <div class="panel">
+      <h2>대기 목록 <span class="pill pill-warn" id="queue-count-badge">0명 대기</span></h2>
+      <ul id="queue-list" class="queue-list"></ul>
+    </div>
+
+  </div>
+
+  <footer>
+    <span>인덕과학기술고등학교 · 바이브코딩 체험부스 대기자 관리</span>
+    <button id="btn-reset" class="btn-danger-outline btn-sm" type="button">전체 초기화</button>
+  </footer>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>
