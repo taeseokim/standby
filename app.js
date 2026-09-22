@@ -154,15 +154,17 @@
     var completeBtn = $("#btn-complete");
 
     if (state.serving) {
+      var hasName = !!state.serving.name;
+      nameEl.textContent = hasName ? state.serving.name : ticket(state.serving.number);
+      nameEl.classList.remove("empty");
       numEl.textContent = ticket(state.serving.number);
-      numEl.classList.remove("empty");
-      nameEl.textContent = state.serving.name || "";
+      numEl.hidden = !hasName;
       metaEl.textContent = "호출 시각 " + formatClock(new Date(state.serving.calledAt));
       completeBtn.disabled = false;
     } else {
-      numEl.textContent = "대기 중인 참가자 없음";
-      numEl.classList.add("empty");
-      nameEl.textContent = "";
+      nameEl.textContent = "대기 중인 참가자 없음";
+      nameEl.classList.add("empty");
+      numEl.hidden = true;
       metaEl.textContent = "\"다음 참가자 호출\"을 눌러 시작하세요";
       completeBtn.disabled = true;
     }
@@ -184,10 +186,12 @@
         return (
           '<li class="queue-row">' +
           '<span class="pos">' + (i + 1) + '</span>' +
-          '<span class="num">' + ticket(w.number) + '</span>' +
           '<span class="info">' +
           '<span class="name">' + (w.name ? escapeHtml(w.name) : "이름 미입력") + '</span>' +
+          '<span class="meta">' +
+          '<span class="num">' + ticket(w.number) + '</span>' +
           '<span class="' + waitClass + '">' + formatElapsed(w.issuedAt) + '</span>' +
+          '</span>' +
           '</span>' +
           '<span class="row-actions">' +
           '<button class="btn-outline btn-sm" data-call="' + w.number + '">호출</button>' +
@@ -210,7 +214,8 @@
     wrap.innerHTML = state.servedToday
       .slice(0, 40)
       .map(function (h) {
-        return '<li class="history-chip">' + ticket(h.number) + '</li>';
+        var label = h.name ? escapeHtml(h.name) : ticket(h.number);
+        return '<li class="history-chip">' + label + '</li>';
       })
       .join("");
   }

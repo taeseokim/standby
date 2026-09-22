@@ -263,26 +263,38 @@ body {
   opacity: 0.85;
 }
 
-.serving-number {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: clamp(56px, 11vw, 96px);
-  font-weight: 700;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-  margin-block: 4px;
+.serving-name {
+  font-family: "Black Han Sans", "Noto Sans KR", sans-serif;
+  font-weight: 400;
+  font-size: clamp(34px, 7vw, 56px);
+  line-height: 1.15;
+  text-wrap: balance;
+  margin-block: 4px 2px;
 }
 
-.serving-number.empty {
-  font-size: clamp(28px, 5vw, 34px);
+.serving-name.empty {
+  font-size: clamp(24px, 4.5vw, 30px);
   opacity: 0.85;
   font-family: "Noto Sans KR", sans-serif;
   font-weight: 700;
 }
 
-.serving-name {
+.serving-number {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
   font-size: 16px;
-  opacity: 0.92;
-  min-height: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 5px 12px;
+  border-radius: 999px;
+  opacity: 0.95;
+}
+
+.serving-number[hidden] {
+  display: none;
 }
 
 .serving-meta {
@@ -451,34 +463,40 @@ button:disabled {
   flex-shrink: 0;
 }
 
-.queue-row .num {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 20px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--accent);
-  min-width: 46px;
-}
-
 .queue-row .info {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
 }
 
 .queue-row .info .name {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 16.5px;
+  font-weight: 700;
+  color: var(--ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.queue-row .info .wait {
+.queue-row .info .meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 12px;
   color: var(--ink-dim);
+}
+
+.queue-row .num {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+.queue-row .info .wait {
   font-variant-numeric: tabular-nums;
 }
 
