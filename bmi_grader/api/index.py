@@ -15,7 +15,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException  # noqa: E402
 from pydantic import BaseModel  # noqa: E402
 
 from lib import db  # noqa: E402
-from lib.grader import format_run_log, grade, run_tests  # noqa: E402
+from lib.grader import format_run_log, grade, run_student_code, run_tests  # noqa: E402
 from lib.rubric import (  # noqa: E402
     ACHIEVEMENT_LEVELS,
     ASSIGNMENT_STEPS,
@@ -93,13 +93,19 @@ def config():
 
 @app.get("/api/health")
 def health():
-    """배포 상태 확인: DB 연결, OpenAI 키 설정 여부."""
+    """배포 상태 확인: DB 연결, 학생 코드 실행기, OpenAI 키 설정 여부."""
     try:
         db.ping()
         database = "ok"
     except Exception as exc:
         database = f"error: {type(exc).__name__}"
-    return {"database": database, "openai_key": bool(os.environ.get("OPENAI_API_KEY")), "model": OPENAI_MODEL}
+    try:
+        run = run_student_code("print(float(input()) * 2)", "1.5\n")
+        runner = "ok" if run["ok"] and run["output"].strip() == "3.0" else f"error: {run['status']} {run['output'][:200]}"
+    except Exception as exc:
+        runner = f"error: {type(exc).__name__}: {exc}"
+    return {"database": database, "code_runner": runner, "openai_key": bool(os.environ.get("OPENAI_API_KEY")),
+            "model": OPENAI_MODEL}
 
 
 class SubmitIn(BaseModel):
