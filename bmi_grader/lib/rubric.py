@@ -38,16 +38,21 @@ def bmi_stage_table():
     return "\n".join(lines)
 
 
-ASSIGNMENT_TEXT = f"""\
-**평가 과제: 비만도(BMI) 판정 프로그램 작성하기**
+ASSIGNMENT_TITLE = "비만도(BMI) 판정 프로그램 작성하기"
+ASSIGNMENT_STEPS = [
+    "키(cm)와 몸무게(kg)를 `input()`으로 입력받아 **실수(float)** 로 변환하세요. (키 → 몸무게 순서)",
+    "BMI = 몸무게(kg) ÷ (키(m))² 공식으로 계산하세요. 키는 cm → m로 바꿔야 합니다.",
+    "`if - elif - else` 문으로 아래 **5단계** 중 하나를 판정해 출력하세요.",
+    "키나 몸무게에 **0 이하의 값**이 들어오면 경고 메시지를 보여주고 **다시 입력**받으세요.",
+    "변수명은 뜻이 드러나게 짓고, 주석을 충분히 달고, BMI는 **소수점 둘째 자리**까지 보기 좋게 출력하세요.",
+]
 
-1. 키(cm)와 몸무게(kg)를 `input()`으로 입력받아 **실수(float)** 로 변환하세요.
-2. BMI = 몸무게(kg) ÷ (키(m))² 공식으로 계산하세요. 키는 cm → m로 바꿔야 합니다.
-3. `if - elif - else` 문으로 아래 **5단계** 중 하나를 판정해 출력하세요.
-{bmi_stage_table()}
-4. 키나 몸무게에 **0 이하의 값**이 들어오면 경고 메시지를 보여주고 **다시 입력**받으세요.
-5. 변수명은 뜻이 드러나게 짓고, 주석을 충분히 달고, BMI는 **소수점 둘째 자리**까지 보기 좋게 출력하세요.
-"""
+ASSIGNMENT_TEXT = (
+    f"평가 과제: {ASSIGNMENT_TITLE}\n"
+    + "\n".join(f"{n}. {step}" for n, step in enumerate(ASSIGNMENT_STEPS, start=1))
+    + "\n[BMI 5단계]\n"
+    + bmi_stage_table()
+)
 
 # 채점 요소: (key, 이름, [(점수, 기대 수행), ...])
 CRITERIA = [

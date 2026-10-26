@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BMI 수행평가 제출</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<main>
+  <div class="topnav">
+    <h1>📏 BMI 비만도 판정 프로그램 수행평가</h1>
+    <a href="/teacher.html">교사용</a>
+  </div>
+  <p class="sub">코드를 제출하면 바로 실행·채점되어 결과를 확인할 수 있습니다.</p>
+
+  <section class="panel">
+    <h2 id="title">과제 안내</h2>
+    <ol id="steps"></ol>
+    <h3>BMI 5단계</h3>
+    <div class="table-wrap"><table id="stages"></table></div>
+    <p class="muted" id="rule"></p>
+  </section>
+
+  <form class="panel" id="form">
+    <div class="grid2">
+      <div class="field"><label for="sid">학번</label><input type="text" id="sid" inputmode="numeric" placeholder="예: 20315" autocomplete="off"></div>
+      <div class="field"><label for="name">이름</label><input type="text" id="name" placeholder="예: 홍길동" autocomplete="off"></div>
+    </div>
+    <div class="field hidden" id="access-wrap"><label for="access">수업 코드</label><input type="text" id="access" placeholder="선생님이 알려준 코드" autocomplete="off"></div>
+    <div class="field">
+      <label for="code">파이썬 코드</label>
+      <textarea class="code" id="code" spellcheck="false" placeholder="# 여기에 작성한 파이썬 코드를 붙여 넣으세요"></textarea>
+      <div class="row" style="margin-top:6px"><span class="muted">또는 .py 파일 불러오기</span><input type="file" id="file" accept=".py"></div>
+    </div>
+    <label class="check field"><input type="checkbox" id="agree"> 본인이 직접 작성한 코드이며, 제출 후에는 수정할 수 없음을 확인합니다.</label>
+    <div id="form-error" class="error hidden"></div>
+    <div class="row" style="margin-top:12px"><button class="primary" id="submit" type="submit">제출하기</button></div>
+  </form>
+
+  <section class="panel hidden" id="progress">
+    <h2>실시간 채점</h2>
+    <ul class="steps">
+      <li id="st-save"><span class="dot">○</span>제출 저장</li>
+      <li id="st-run"><span class="dot">○</span>테스트 입력으로 코드 실행</li>
+      <li id="st-ai"><span class="dot">○</span>AI 채점 (채점기준 적용) <span class="muted" id="ai-timer"></span></li>
+    </ul>
+    <div id="tests-wrap" class="hidden">
+      <h3>코드 실행 결과 <span class="muted">(판정 일치 여부는 참고용이며, 점수는 AI·선생님이 채점기준으로 매깁니다)</span></h3>
+      <div class="table-wrap"><table id="tests"></table></div>
+    </div>
+    <div id="result" class="hidden"></div>
+  </section>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+const md = (s) => esc(s).replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>");
+let CONFIG = null;
+
+async function api(path, body) {
+  const res = await fetch(path, body ? {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)} : {});
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "서버 오류가 발생했습니다. 잠시 후 다시 시도하세요.");
+  return data;
+}
+
+function stageRows(stages) {
+  let lower = null;
+  return stages.map(({upper, name}) => {
+    const range = lower === null ? `${upper} 미만` : upper === null ? `${lower} 이상` : `${lower} 이상 ${upper} 미만`;
+    lower = upper;
+    return `<tr><td>${esc(name)}</td><td>BMI ${range}</td></tr>`;
+  }).join("");
+}
+
+async function loadConfig() {
+  CONFIG = await api("/api/config");
+  $("title").textContent = "평가 과제: " + CONFIG.title;
+  $("steps").innerHTML = CONFIG.steps.map((s) => `<li>${md(s)}</li>`).join("");
+  $("stages").innerHTML = "<tr><th>단계</th><th>기준</th></tr>" + stageRows(CONFIG.stages);
+  $("rule").textContent = `채점: ${CONFIG.criteria.map((c) => c.name).join(" · ")} (각 10점, 총 ${CONFIG.max_score}점) · 제출 가능 횟수 ${CONFIG.max_submissions}회`;
+  $("access-wrap").classList.toggle("hidden", !CONFIG.access_code_required);
+}
+
+$("file").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const buf = await file.arrayBuffer();
+  let text;
+  try { text = new TextDecoder("utf-8", {fatal: true}).decode(buf); }
+  catch { text = new TextDecoder("euc-kr").decode(buf); }
+  $("code").value = text.replace(/^﻿/, "");
+});
+
+// 코드 칸에서 Tab 키로 들여쓰기
+$("code").addEventListener("keydown", (e) => {
+  if (e.key !== "Tab") return;
+  e.preventDefault();
+  const el = e.target, start = el.selectionStart;
+  el.setRangeText("    ", start, el.selectionEnd, "end");
+});
+
+function setStep(id, state, extra) {
+  const li = $(id);
+  li.className = state;
+  li.querySelector(".dot").innerHTML = {active: '<span class="spinner"></span>', done: "✔", fail: "✖"}[state] || "○";
+}
+
+function renderTests(tests) {
+  $("tests").innerHTML = "<tr><th>테스트</th><th>입력값</th><th>기대 결과</th><th>실제 출력</th><th>판정</th></tr>" + tests.map((t) => `
+    <tr><td>${esc(t.name)}</td><td><code>${esc(t.input)}</code></td><td>${esc(t.expect)}</td>
+    <td><pre>${esc(t.output || "(출력 없음)")}</pre><span class="muted">${esc(t.status)}</span></td>
+    <td>${t.match ? '<span class="badge ok">일치</span>' : '<span class="badge bad">확인 필요</span>'}</td></tr>`).join("");
+  $("tests-wrap").classList.remove("hidden");
+}
+
+function renderResult(result) {
+  const rows = CONFIG.criteria.map((c) => `<tr><td>${esc(c.name)}</td><td class="num">${result.criteria[c.key].score} / 10</td><td>${esc(result.criteria[c.key].reason)}</td></tr>`).join("");
+  $("result").innerHTML = `
+    <h3>채점 결과 <span class="muted">(AI 1차 채점 · 최종 점수는 선생님 확인 후 확정)</span></h3>
+    <div class="row" style="gap:32px;margin-bottom:8px">
+      <div><div class="muted">총점</div><div class="score-big">${result.total} / ${CONFIG.max_score}</div></div>
+      <div><div class="muted">성취수준</div><div class="score-big">${esc(result.achievement_level)}</div></div>
+    </div>
+    <div class="table-wrap"><table><tr><th>채점 요소</th><th class="num">점수</th><th>근거</th></tr>${rows}</table></div>
+    <p class="info" style="margin-top:12px">${esc(result.student_feedback)}</p>`;
+  $("result").classList.remove("hidden");
+}
+
+$("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const err = $("form-error");
+  err.classList.add("hidden");
+  const body = {student_id: $("sid").value.trim(), name: $("name").value.trim(), code: $("code").value, access_code: $("access").value};
+  const problems = [];
+  if (!/^\d+$/.test(body.student_id)) problems.push("학번을 숫자로 입력하세요.");
+  if (!body.name) problems.push("이름을 입력하세요.");
+  if (!body.code.trim()) problems.push("코드를 붙여 넣으세요.");
+  if (!$("agree").checked) problems.push("확인 항목에 체크하세요.");
+  if (problems.length) { err.textContent = problems.join(" "); err.classList.remove("hidden"); return; }
+
+  $("submit").disabled = true;
+  $("progress").classList.remove("hidden");
+  $("tests-wrap").classList.add("hidden");
+  $("result").classList.add("hidden");
+  ["st-save", "st-run", "st-ai"].forEach((id) => setStep(id, ""));
+  setStep("st-save", "active");
+  setStep("st-run", "active");
+  $("progress").scrollIntoView({behavior: "smooth"});
+
+  let submission;
+  try {
+    submission = await api("/api/submit", body);
+  } catch (ex) {
+    setStep("st-save", "fail"); setStep("st-run", "");
+    err.textContent = ex.message; err.classList.remove("hidden");
+    $("progress").classList.add("hidden");
+    $("submit").disabled = false;
+    return;
+  }
+  setStep("st-save", "done");
+  setStep("st-run", "done");
+  renderTests(submission.tests);
+  ["sid", "name", "code", "file", "agree", "access"].forEach((id) => $(id).disabled = true);
+
+  setStep("st-ai", "active");
+  const started = Date.now();
+  const timer = setInterval(() => $("ai-timer").textContent = `${Math.round((Date.now() - started) / 1000)}초`, 1000);
+  try {
+    const graded = await api("/api/grade", {id: submission.id});
+    clearInterval(timer);
+    if (!graded.ok) {
+      setStep("st-ai", "fail");
+      $("result").innerHTML = '<p class="error">자동 채점 중 문제가 생겼습니다. 제출은 정상 저장되었으니 선생님이 다시 채점합니다.</p>';
+      $("result").classList.remove("hidden");
+      return;
+    }
+    setStep("st-ai", "done");
+    if (graded.result) renderResult(graded.result);
+    else { $("result").innerHTML = '<p class="success">제출과 채점이 끝났습니다. 결과는 선생님 확인 후 안내됩니다.</p>'; $("result").classList.remove("hidden"); }
+  } catch (ex) {
+    clearInterval(timer);
+    setStep("st-ai", "fail");
+    $("result").innerHTML = `<p class="error">${esc(ex.message)} 제출은 저장되었으니 선생님께 알려 주세요.</p>`;
+    $("result").classList.remove("hidden");
+  }
+});
+
+loadConfig().catch((ex) => { $("form-error").textContent = ex.message; $("form-error").classList.remove("hidden"); });
+</script>
+</body>
+</html>

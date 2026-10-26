@@ -6,11 +6,11 @@ import subprocess
 import sys
 import tempfile
 
-from rubric import (
+from lib.rubric import (
     ACHIEVEMENT_LEVELS,
     ALLOWED_SCORES,
     ASSIGNMENT_TEXT,
-    CRITERIA,
+    BMI_STAGES,
     CRITERIA_KEYS,
     bmi_stage,
     rubric_text,
@@ -20,27 +20,33 @@ RUN_TIMEOUT_SEC = 3
 MAX_OUTPUT_CHARS = 2000
 
 
-def _expected(height_cm, weight_kg):
+def _case(name, height_cm, weight_kg, note="", prefix="", stdin=None):
     bmi = weight_kg / (height_cm / 100) ** 2
-    return f"키 {height_cm}cm, 몸무게 {weight_kg}kg → BMI {bmi:.2f}, '{bmi_stage(bmi)}'"
+    stage = bmi_stage(bmi)
+    expect = f"키 {height_cm}cm, 몸무게 {weight_kg}kg → BMI {bmi:.2f}, '{stage}'"
+    return {
+        "name": name,
+        "stdin": stdin or f"{height_cm}\n{weight_kg}\n",
+        "expect": (f"{prefix} " if prefix else "") + expect + (f" ({note})" if note else ""),
+        "expected_stage": stage,
+    }
 
 
 # 학생 프로그램에 넣어볼 테스트 입력. 키 → 몸무게 순서로 입력받는다고 가정한다.
+# 경계값은 키 200cm(2.0m)로 넣어 부동소수점 오차 없이 BMI가 정확히 경계값이 되게 한다.
+# (예: 160cm/64kg는 24.999999999999996이 되어 올바른 코드도 '과체중'으로 판정한다.)
 TEST_CASES = [
-    {"name": "소수점 입력", "stdin": "170.5\n65.3\n", "expect": _expected(170.5, 65.3)},
-    {"name": "저체중", "stdin": "180\n55\n", "expect": _expected(180, 55)},
-    # 경계값은 키 200cm(2.0m)로 넣어 부동소수점 오차 없이 BMI가 정확히 경계값이 되게 한다.
-    # (예: 160cm/64kg는 24.999999999999996이 되어 올바른 코드도 '과체중'으로 판정한다.)
-    {"name": "경계값 18.5", "stdin": "200\n74\n", "expect": _expected(200, 74) + " (18.5는 '정상'의 시작)"},
-    {"name": "경계값 23.0", "stdin": "200\n92\n", "expect": _expected(200, 92) + " (23.0은 '과체중'의 시작)"},
-    {"name": "경계값 25.0", "stdin": "200\n100\n", "expect": _expected(200, 100) + " (25.0은 '비만'의 시작)"},
-    {"name": "경계값 30.0", "stdin": "200\n120\n", "expect": _expected(200, 120) + " (30.0은 '고도비만'의 시작)"},
-    {
-        "name": "0 이하 입력",
-        # 0, 음수를 섞어 넣고 뒤에 정상값을 여러 번 붙여, 재입력 방식이 달라도 끝까지 실행되게 한다.
-        "stdin": "0\n-170\n170\n-60\n0\n60\n" + "170\n60\n" * 3,
-        "expect": "0과 음수 입력마다 경고 후 재입력을 받아야 함. 최종 정상값 " + _expected(170, 60),
-    },
+    _case("소수점 입력", 170.5, 65.3),
+    _case("저체중", 180, 55),
+    _case("경계값 18.5", 200, 74, "18.5는 '정상'의 시작"),
+    _case("경계값 23.0", 200, 92, "23.0은 '과체중'의 시작"),
+    _case("경계값 25.0", 200, 100, "25.0은 '비만'의 시작"),
+    _case("경계값 30.0", 200, 120, "30.0은 '고도비만'의 시작"),
+    # 0, 음수를 섞어 넣고 뒤에 정상값을 여러 번 붙여, 재입력 방식이 달라도 끝까지 실행되게 한다.
+    _case(
+        "0 이하 입력", 170, 60, prefix="0과 음수 입력마다 경고 후 재입력을 받아야 함. 최종 정상값",
+        stdin="0\n-170\n170\n-60\n0\n60\n" + "170\n60\n" * 3,
+    ),
 ]
 
 
@@ -83,29 +89,55 @@ def run_student_code(code, stdin_text):
                     preexec_fn=_limit_resources if os.name == "posix" else None,
                 )
                 status = f"종료 코드 {proc.returncode}"
+                ok = proc.returncode == 0
             except subprocess.TimeoutExpired:
                 status = f"{RUN_TIMEOUT_SEC}초 시간 초과로 강제 종료"
+                ok = False
         with open(out_path, encoding="utf-8", errors="replace") as f:
             output = f.read(MAX_OUTPUT_CHARS + 1)
     if len(output) > MAX_OUTPUT_CHARS:
         output = output[:MAX_OUTPUT_CHARS] + "\n...(출력이 길어 생략)"
-    return {"status": status, "output": output}
+    return {"status": status, "ok": ok, "output": output}
 
 
-def build_run_log(code):
-    """모든 테스트 입력으로 실행한 결과를 사람이 읽을 수 있는 로그로 만든다."""
-    blocks = []
+def detect_stages(output):
+    """출력에 등장한 BMI 단계명 목록. '고도비만' 안의 '비만'은 따로 세지 않는다."""
+    names = sorted((name for _, name in BMI_STAGES), key=len, reverse=True)
+    found = []
+    for name in names:
+        if name in output:
+            found.append(name)
+            output = output.replace(name, "")
+    return found
+
+
+def run_tests(code):
+    """모든 테스트 입력으로 실행한 결과 목록. match는 '출력한 판정이 기대 단계와 같은지'(참고용)."""
+    results = []
     for case in TEST_CASES:
-        result = run_student_code(code, case["stdin"])
-        stdin_shown = case["stdin"].strip().replace("\n", " / ")
-        blocks.append(
-            f"### 테스트: {case['name']}\n"
-            f"입력값(순서대로): {stdin_shown}\n"
-            f"기대 결과: {case['expect']}\n"
-            f"실행 상태: {result['status']}\n"
-            f"실제 출력:\n{result['output'] or '(출력 없음)'}"
-        )
-    return "\n\n".join(blocks)
+        run = run_student_code(code, case["stdin"])
+        stages = detect_stages(run["output"])
+        results.append({
+            "name": case["name"],
+            "input": case["stdin"].strip().replace("\n", " / "),
+            "expect": case["expect"],
+            "status": run["status"],
+            "output": run["output"],
+            "match": run["ok"] and stages == [case["expected_stage"]],
+        })
+    return results
+
+
+def format_run_log(tests):
+    """테스트 결과를 채점 프롬프트·교사 화면용 텍스트로 만든다."""
+    return "\n\n".join(
+        f"### 테스트: {t['name']}\n"
+        f"입력값(순서대로): {t['input']}\n"
+        f"기대 결과: {t['expect']}\n"
+        f"실행 상태: {t['status']}\n"
+        f"실제 출력:\n{t['output'] or '(출력 없음)'}"
+        for t in tests
+    )
 
 
 def _criterion_schema():
@@ -170,12 +202,12 @@ def _user_prompt(code, run_log):
     )
 
 
-def grade(code, client, model, run_code=True):
-    """학생 코드를 채점해 결과 dict를 돌려준다.
+def grade(code, run_log, client, model):
+    """학생 코드와 실행 로그로 AI 채점을 하고 결과 dict를 돌려준다.
 
-    반환값: {"run_log": str, "result": {채점요소별 score/reason, achievement_level, ..., "total": int}}
+    반환값: {채점요소별 {"score", "reason"}, "achievement_level", "strengths", "improvements",
+             "student_feedback", "total"}
     """
-    run_log = build_run_log(code) if run_code else ""
     response = client.chat.completions.create(
         model=model,
         messages=[
@@ -197,7 +229,7 @@ def grade(code, client, model, run_code=True):
         if score not in ALLOWED_SCORES:
             result[key]["score"] = min(ALLOWED_SCORES, key=lambda s: abs(s - score))
     result["total"] = total_score(result)
-    return {"run_log": run_log, "result": result}
+    return result
 
 
 def total_score(scores):
@@ -207,11 +239,3 @@ def total_score(scores):
         value = scores[key]
         total += value["score"] if isinstance(value, dict) else value
     return total
-
-
-def criteria_levels(key):
-    """채점요소의 (점수, 설명) 목록."""
-    for k, _, levels in CRITERIA:
-        if k == key:
-            return levels
-    raise KeyError(key)
