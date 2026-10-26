@@ -10,11 +10,10 @@ def input_positive_number(prompt):
             return value
 
 
-height_cm = input_positive_number("키(cm)를 입력하세요: ")
+height_m = input_positive_number("키(m)를 입력하세요: ")
 weight_kg = input_positive_number("몸무게(kg)를 입력하세요: ")
 
-# cm를 m로 바꾼 뒤 BMI = 몸무게 / 키(m)의 제곱
-height_m = height_cm / 100
+# BMI = 몸무게 / 키(m)의 제곱
 bmi = weight_kg / height_m ** 2
 
 # 5단계 비만도 판정 (경계값은 위 단계에 포함)
