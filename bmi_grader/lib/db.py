@@ -62,5 +62,10 @@ def list_all():
     return _request("GET", params={"select": LIST_COLUMNS, "order": "student_id.asc,id.asc"})
 
 
+def ping():
+    """DB 연결 확인용: 행 내용은 읽지 않는다."""
+    _request("GET", params={"select": "id", "limit": "1"})
+
+
 def for_student(student_id):
     return _request("GET", params={"student_id": f"eq.{student_id}", "select": "id,name", "order": "id.asc"})

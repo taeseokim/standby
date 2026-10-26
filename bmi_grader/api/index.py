@@ -91,6 +91,17 @@ def config():
     }
 
 
+@app.get("/api/health")
+def health():
+    """배포 상태 확인: DB 연결, OpenAI 키 설정 여부."""
+    try:
+        db.ping()
+        database = "ok"
+    except Exception as exc:
+        database = f"error: {type(exc).__name__}"
+    return {"database": database, "openai_key": bool(os.environ.get("OPENAI_API_KEY")), "model": OPENAI_MODEL}
+
+
 class SubmitIn(BaseModel):
     student_id: str
     name: str
