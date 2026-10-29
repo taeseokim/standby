@@ -200,13 +200,19 @@ _DOWN = re.compile(r"\bdown\b|더\s*작|더\s*낮|작게", re.IGNORECASE)
 
 
 def detect_hints(output):
-    """출력에서 UP/DOWN 힌트를 순서대로 뽑는다. 'UP & DOWN 게임' 처럼 둘 다 있는 줄은 제목으로 보고 건너뛴다."""
+    """출력에서 UP/DOWN 힌트를 순서대로 뽑는다.
+
+    input() 안내 문구 뒤에 출력이 같은 줄로 이어지므로, 줄을 input 프롬프트 기준이 아니라 한 줄 = 힌트 하나로 센다.
+    'UP! 더 큰 수입니다.' 처럼 한 줄에 같은 뜻의 표현이 여러 번 나와도 힌트 1개로 본다.
+    'UP & DOWN 게임' 처럼 둘 다 있는 줄은 제목으로 보고 건너뛴다.
+    """
     hints = []
     for line in output.splitlines():
-        ups, downs = list(_UP.finditer(line)), list(_DOWN.finditer(line))
-        if ups and downs:
-            continue
-        hints += ["UP"] * len(ups) + ["DOWN"] * len(downs)
+        has_up, has_down = bool(_UP.search(line)), bool(_DOWN.search(line))
+        if has_up and not has_down:
+            hints.append("UP")
+        elif has_down and not has_up:
+            hints.append("DOWN")
     return hints
 
 
