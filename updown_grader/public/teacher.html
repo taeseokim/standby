@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>업앤다운 게임 수행평가 교사용</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<main>
+  <div class="topnav">
+    <h1>🧑‍🏫 업앤다운 게임 · 교사용 채점 현황</h1>
+    <a href="/">학생 제출 화면</a>
+  </div>
+
+  <form class="panel" id="login">
+    <div class="field"><label for="pw">교사 비밀번호</label><input type="password" id="pw" autocomplete="current-password"></div>
+    <div id="login-error" class="error hidden"></div>
+    <button class="primary" type="submit" style="margin-top:8px">로그인</button>
+  </form>
+
+  <div id="app" class="hidden">
+    <div class="row" style="justify-content:space-between;margin-bottom:12px">
+      <span class="live" id="live">실시간 연결 중</span>
+      <span class="muted" id="meta"></span>
+    </div>
+    <div id="warn" class="error hidden" style="margin-bottom:12px"></div>
+    <div class="metrics">
+      <div class="metric"><div class="label">제출 학생</div><div class="value" id="m-students">0</div></div>
+      <div class="metric"><div class="label">채점 완료</div><div class="value" id="m-graded">0</div></div>
+      <div class="metric"><div class="label">채점 중</div><div class="value" id="m-running">0</div></div>
+      <div class="metric"><div class="label">오류</div><div class="value" id="m-error">0</div></div>
+      <div class="metric"><div class="label">평균 점수</div><div class="value" id="m-avg">-</div></div>
+    </div>
+
+    <section class="panel">
+      <div class="row" style="justify-content:space-between;margin-bottom:10px">
+        <label class="check"><input type="checkbox" id="show-all"> 모든 제출 보기 (끄면 학생별 최근 제출만)</label>
+        <div class="row">
+          <button id="regrade-failed" class="hidden">오류 건 다시 채점</button>
+          <button id="csv">CSV 내려받기 (엑셀용)</button>
+        </div>
+      </div>
+      <details style="margin-bottom:12px">
+        <summary>학생 명단 (미제출자 확인용, 선택)</summary>
+        <p class="muted">한 줄에 '학번,이름' 형식으로 붙여 넣으세요. 엑셀에서 두 열을 복사해 붙여 넣어도 됩니다. 이 브라우저에만 저장됩니다.</p>
+        <textarea id="roster" rows="5"></textarea>
+      </details>
+      <div class="table-wrap"><table id="table"></table></div>
+    </section>
+
+    <section class="panel hidden" id="detail"></section>
+  </div>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+const kst = (iso) => iso ? new Date(iso).toLocaleString("ko-KR", {timeZone: "Asia/Seoul", hour12: false}) : "";
+const kstShort = (iso) => iso ? new Date(iso).toLocaleString("ko-KR", {timeZone: "Asia/Seoul", hour12: false, month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit"}) : "";
+const STATUS = {running: ["실행 중", "info"], grading: ["채점 중", "warn"], graded: ["채점완료", "ok"], error: ["오류", "bad"]};
+const POLL_MS = 5000;
+let CONFIG = null, password = "", rows = [], knownIds = new Set(), selectedId = null, pollTimer = null;
+
+function load(kind, key) { try { return window[kind].getItem(key) || ""; } catch { return ""; } }
+
+async function api(path, options = {}) {
+  const res = await fetch(path, {...options, headers: {"Content-Type": "application/json", "x-teacher-password": password, ...(options.headers || {})}});
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error(typeof data.detail === "string" ? data.detail : `서버 오류 (${res.status})`);
+    err.status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+const keys = () => CONFIG.criteria.map((c) => c.key);
+function finalScores(r) {
+  if (r.teacher) return Object.fromEntries(keys().map((k) => [k, r.teacher[k]]));
+  if (r.result) return Object.fromEntries(keys().map((k) => [k, r.result[k].score]));
+  return null;
+}
+const sum = (s) => s ? Object.values(s).reduce((a, b) => a + b, 0) : null;
+const levelOf = (r) => (r.teacher && r.teacher.level) || (r.result && r.result.achievement_level) || "";
+
+function roster() {
+  return $("roster").value.split("\n").map((l) => l.split(/[,\t]/).map((p) => p.trim()).filter(Boolean))
+    .filter((p) => p.length && /^\d+$/.test(p[0])).map((p) => ({student_id: p[0], name: p[1] || ""}));
+}
+
+function visibleRows() {
+  if ($("show-all").checked) return rows;
+  const latest = new Map();
+  rows.forEach((r) => { if (!latest.has(r.student_id) || latest.get(r.student_id).id < r.id) latest.set(r.student_id, r); });
+  return [...latest.values()].sort((a, b) => a.student_id.localeCompare(b.student_id) || a.id - b.id);
+}
+
+function tableData() {
+  const list = visibleRows().map((r) => ({r, scores: finalScores(r)}));
+  const submitted = new Set(rows.map((r) => r.student_id));
+  const missing = roster().filter((p) => !submitted.has(p.student_id));
+  return {list, missing};
+}
+
+function renderTable() {
+  const {list, missing} = tableData();
+  const head = `<tr><th>학번</th><th>이름</th><th>제출시각</th>${CONFIG.criteria.map((c) => `<th class="num">${esc(c.name)}</th>`).join("")}<th class="num">총점</th><th>성취</th><th>상태</th></tr>`;
+  const body = list.map(({r, scores}) => {
+    const [label, cls] = STATUS[r.status] || [r.status, "info"];
+    const isNew = !knownIds.has(r.id) && knownIds.size > 0;
+    return `<tr class="clickable ${r.id === selectedId ? "selected" : ""} ${isNew ? "flash" : ""}" data-id="${r.id}">
+      <td>${esc(r.student_id)}</td><td style="white-space:nowrap">${esc(r.name)}</td><td style="white-space:nowrap">${kstShort(r.submitted_at)}</td>
+      ${keys().map((k) => `<td class="num">${scores ? scores[k] : ""}</td>`).join("")}
+      <td class="num"><b>${scores ? sum(scores) : ""}</b></td><td>${esc(levelOf(r))}</td>
+      <td><span class="badge ${cls}">${label}</span>${r.teacher ? ' <span class="badge info">확정</span>' : ""}</td></tr>`;
+  }).join("");
+  const miss = missing.map((p) => `<tr><td>${esc(p.student_id)}</td><td>${esc(p.name)}</td><td></td>${keys().map(() => "<td></td>").join("")}<td class="num">${CONFIG.no_submission_score}</td><td></td><td><span class="badge bad">미제출</span></td></tr>`).join("");
+  $("table").innerHTML = head + (body + miss || `<tr><td colspan="${keys().length + 6}" class="muted">아직 제출이 없습니다. 학생이 제출하면 여기에 바로 나타납니다.</td></tr>`);
+  rows.forEach((r) => knownIds.add(r.id));
+
+  const students = new Set(rows.map((r) => r.student_id));
+  const latest = visibleRows();
+  const graded = latest.filter((r) => r.status === "graded");
+  const totals = graded.map((r) => sum(finalScores(r)));
+  $("m-students").textContent = students.size;
+  $("m-graded").textContent = graded.length;
+  $("m-running").textContent = latest.filter((r) => r.status === "running" || r.status === "grading").length;
+  $("m-error").textContent = latest.filter((r) => r.status === "error").length;
+  $("m-avg").textContent = totals.length ? (totals.reduce((a, b) => a + b, 0) / totals.length).toFixed(1) : "-";
+  const failed = latest.filter((r) => r.status === "error").length;
+  $("regrade-failed").classList.toggle("hidden", !failed);
+  $("regrade-failed").textContent = `오류 ${failed}건 다시 채점`;
+}
+
+async function poll() {
+  clearTimeout(pollTimer);
+  try {
+    const data = await api("/api/teacher/submissions");
+    rows = data.submissions;
+    $("live").className = "live";
+    $("live").textContent = `실시간 · ${new Date().toLocaleTimeString("ko-KR", {hour12: false})} 갱신`;
+    $("meta").textContent = `채점 모델 ${data.model} · 학생당 제출 ${CONFIG.max_submissions}회`;
+    $("warn").classList.toggle("hidden", data.openai_ready);
+    $("warn").textContent = "OPENAI_API_KEY가 설정되지 않아 AI 채점이 동작하지 않습니다. Vercel 프로젝트 환경변수에 추가하세요.";
+    renderTable();
+    if (selectedId) refreshDetailStatus();
+  } catch (ex) {
+    if (ex.status === 401) return logout(ex.message);
+    $("live").className = "live off";
+    $("live").textContent = "연결 끊김 · 다시 시도 중";
+  }
+  pollTimer = setTimeout(poll, POLL_MS);
+}
+
+// 상세 화면을 보고 있는 제출이 채점 중이었다가 끝나면 상세를 새로 그린다.
+let detailStatus = null;
+function refreshDetailStatus() {
+  const r = rows.find((x) => x.id === selectedId);
+  if (r && r.status !== detailStatus) openDetail(selectedId);
+}
+
+function testsTable(tests) {
+  if (!tests || !tests.length) return '<p class="muted">실행 기록이 없습니다.</p>';
+  return `<div class="table-wrap"><table><tr><th>테스트</th><th>정답</th><th>입력값</th><th>기대 결과</th><th>실제 출력</th><th>판정</th></tr>${tests.map((t) => `
+    <tr><td>${esc(t.name)}</td><td class="num">${esc(t.answers || "")}</td><td><code>${esc(t.input)}</code></td><td>${esc(t.expect)}</td>
+    <td><pre>${esc(t.output || "(출력 없음)")}</pre><span class="muted">${esc(t.status)}</span></td>
+    <td>${t.match ? '<span class="badge ok">일치</span>' : '<span class="badge bad">확인 필요</span>'}</td></tr>`).join("")}</table></div>`;
+}
+
+async function openDetail(id) {
+  selectedId = id;
+  renderTable();
+  const d = await api(`/api/teacher/submissions/${id}`);
+  detailStatus = d.status;
+  const [label, cls] = STATUS[d.status] || [d.status, "info"];
+  const current = finalScores(d) || Object.fromEntries(keys().map((k) => [k, 10]));
+  const res = d.result;
+  const aiBlock = res ? `
+    <h3>AI 채점 결과 <span class="muted">(${esc(d.model || "")}, ${kst(d.graded_at)})</span></h3>
+    <div class="table-wrap"><table><tr><th>채점 요소</th><th class="num">점수</th><th>근거</th></tr>
+    ${CONFIG.criteria.map((c) => `<tr><td>${esc(c.name)}</td><td class="num">${res[c.key].score}</td><td>${esc(res[c.key].reason)}</td></tr>`).join("")}
+    <tr><td><b>총점 / 성취수준</b></td><td class="num"><b>${res.total}</b></td><td><b>${esc(res.achievement_level)}</b></td></tr></table></div>
+    <p><b>잘한 점</b> ${esc(res.strengths)}</p><p><b>보완할 점</b> ${esc(res.improvements)}</p>
+    <p class="info"><b>학생 피드백</b><br>${esc(res.student_feedback)}</p>` : "";
+  $("detail").innerHTML = `
+    <div class="row" style="justify-content:space-between"><h2>#${d.id} ${esc(d.student_id)} ${esc(d.name)} <span class="badge ${cls}">${label}</span></h2>
+      <button id="close">닫기</button></div>
+    <p class="muted">제출 ${kst(d.submitted_at)}</p>
+    ${d.status === "error" ? `<p class="error">채점 오류: ${esc(d.error)}</p>` : ""}
+    ${d.status === "grading" || d.status === "running" ? '<p class="info"><span class="spinner"></span> 채점 중입니다. 끝나면 자동으로 갱신됩니다. (학생이 채점 도중 창을 닫았다면 아래 "AI로 다시 채점"을 누르세요)</p>' : ""}
+    <h3>제출 코드</h3><pre>${esc(d.code)}</pre>
+    <h3>테스트 실행 결과</h3>${d.run_log ? `<p class="muted">${esc(d.run_log.split("\n")[0])}</p>` : ""}${testsTable(d.tests)}
+    ${aiBlock}
+    <h3>교사 확정 점수 ${d.teacher ? '<span class="badge info">확정됨</span>' : ""}</h3>
+    <form id="tform">
+      <div class="score-grid">${CONFIG.criteria.map((c) => `<div><label>${esc(c.name)}</label>
+        <select name="${c.key}" title="${esc(c.levels.map(([s, t]) => `${s}점: ${t}`).join("\n"))}">
+        ${c.levels.map(([s]) => `<option value="${s}" ${current[c.key] === s ? "selected" : ""}>${s}</option>`).join("")}</select></div>`).join("")}</div>
+      <div class="grid2" style="margin-top:10px">
+        <div><label>성취수준</label><select name="level">${CONFIG.achievement_levels.map((l) => `<option ${levelOf(d) === l ? "selected" : ""}>${l}</option>`).join("")}</select></div>
+        <div><label>메모</label><input type="text" name="note" value="${esc((d.teacher && d.teacher.note) || "")}"></div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="primary" type="submit">점수 확정 저장</button>
+        <span class="muted" id="tform-total"></span>
+      </div>
+    </form>
+    <div class="row" style="margin-top:16px;border-top:1px solid var(--line);padding-top:14px">
+      <button id="regrade">AI로 다시 채점</button>
+      ${d.teacher ? '<button id="unconfirm">교사 확정 취소</button>' : ""}
+      <button id="delete" class="danger">이 제출 삭제 (재제출 허용)</button>
+      <span class="muted" id="action-msg"></span>
+    </div>`;
+  $("detail").classList.remove("hidden");
+
+  const form = $("tform");
+  const showTotal = () => $("tform-total").textContent = `총점 ${keys().reduce((a, k) => a + Number(form.elements[k].value), 0)}점`;
+  form.addEventListener("change", showTotal);
+  showTotal();
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const scores = Object.fromEntries(keys().map((k) => [k, Number(form.elements[k].value)]));
+    await api(`/api/teacher/submissions/${id}/teacher`, {method: "PUT", body: JSON.stringify({scores, level: form.elements.level.value, note: form.elements.note.value})});
+    await poll(); openDetail(id);
+  });
+  $("close").onclick = () => { selectedId = null; $("detail").classList.add("hidden"); renderTable(); };
+  $("regrade").onclick = async () => {
+    $("regrade").disabled = true; $("action-msg").innerHTML = '<span class="spinner"></span> 채점 중...';
+    try { await api(`/api/teacher/submissions/${id}/regrade`, {method: "POST"}); } catch (ex) { alert(ex.message); }
+    await poll(); openDetail(id);
+  };
+  if ($("unconfirm")) $("unconfirm").onclick = async () => {
+    await api(`/api/teacher/submissions/${id}/teacher`, {method: "PUT", body: JSON.stringify({scores: null})});
+    await poll(); openDetail(id);
+  };
+  $("delete").onclick = async () => {
+    if (!confirm(`${d.student_id} ${d.name} 학생의 #${d.id} 제출을 삭제할까요? 되돌릴 수 없습니다.`)) return;
+    await api(`/api/teacher/submissions/${id}`, {method: "DELETE"});
+    selectedId = null; $("detail").classList.add("hidden"); poll();
+  };
+}
+
+$("table").addEventListener("click", (e) => {
+  const tr = e.target.closest("tr[data-id]");
+  if (tr) openDetail(Number(tr.dataset.id)).then(() => $("detail").scrollIntoView({behavior: "smooth"}));
+});
+$("show-all").addEventListener("change", renderTable);
+$("roster").addEventListener("input", () => { try { localStorage.setItem("updown-roster", $("roster").value); } catch {} renderTable(); });
+
+$("regrade-failed").onclick = async () => {
+  const failed = visibleRows().filter((r) => r.status === "error");
+  $("regrade-failed").disabled = true;
+  for (const [n, r] of failed.entries()) {
+    $("regrade-failed").textContent = `다시 채점 중 ${n + 1}/${failed.length}`;
+    try { await api(`/api/teacher/submissions/${r.id}/regrade`, {method: "POST"}); } catch {}
+  }
+  $("regrade-failed").disabled = false;
+  poll();
+};
+
+$("csv").onclick = () => {
+  const {list, missing} = tableData();
+  const header = ["제출번호", "학번", "이름", "제출시각", ...CONFIG.criteria.map((c) => c.name), "총점", "성취수준", "상태", "교사확정", "교사메모"];
+  const lines = list.map(({r, scores}) => [r.id, r.student_id, r.name, kst(r.submitted_at), ...keys().map((k) => scores ? scores[k] : ""),
+    scores ? sum(scores) : "", levelOf(r), (STATUS[r.status] || [r.status])[0], r.teacher ? "O" : "", (r.teacher && r.teacher.note) || ""]);
+  missing.forEach((p) => lines.push(["", p.student_id, p.name, "", ...keys().map(() => ""), CONFIG.no_submission_score, "", "미제출", "", ""]));
+  const csv = [header, ...lines].map((row) => row.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\r\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob(["﻿" + csv], {type: "text/csv"}));
+  a.download = "업앤다운_수행평가_결과.csv";
+  a.click();
+};
+
+function logout(message) {
+  clearTimeout(pollTimer);
+  try { sessionStorage.removeItem("updown-teacher-pw"); } catch {}
+  $("app").classList.add("hidden");
+  $("login").classList.remove("hidden");
+  if (message) { $("login-error").textContent = message; $("login-error").classList.remove("hidden"); }
+}
+
+async function login(pw) {
+  password = pw;
+  try {
+    await api("/api/teacher/submissions");
+  } catch (ex) {
+    return logout(ex.message);
+  }
+  try { sessionStorage.setItem("updown-teacher-pw", pw); } catch {}
+  $("login").classList.add("hidden");
+  $("app").classList.remove("hidden");
+  poll();
+}
+
+$("login").addEventListener("submit", (e) => { e.preventDefault(); $("login-error").classList.add("hidden"); login($("pw").value); });
+
+(async () => {
+  CONFIG = await (await fetch("/api/config")).json();
+  $("roster").value = load("localStorage", "updown-roster");
+  const saved = load("sessionStorage", "updown-teacher-pw");
+  if (saved) login(saved);
+})();
+</script>
+</body>
+</html>
