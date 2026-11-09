@@ -33,6 +33,7 @@
       <div class="row" style="margin-top:6px"><span class="muted">또는 .py 파일 불러오기</span><input type="file" id="file" accept=".py"></div>
     </div>
     <label class="check field"><input type="checkbox" id="agree"> 본인이 직접 작성한 코드이며, 제출 후에는 수정할 수 없음을 확인합니다.</label>
+    <label class="check field privacy-agree"><input type="checkbox" id="privacy"> <span><b>(필수)</b> 학번·이름·제출 코드를 수행평가 채점과 성적 처리를 위해 수집·이용하고(성적 확정 후 6개월 보관), 채점을 위해 제출 코드와 실행 결과를 OpenAI로 보내는 데 동의합니다. 동의하지 않을 수 있으며, 이 경우 선생님께 다른 제출 방법을 요청하세요. <a href="/privacy.html" target="_blank" rel="noopener">개인정보 처리방침 보기</a></span></label>
     <div id="form-error" class="error hidden"></div>
     <div class="row" style="margin-top:12px"><button class="primary" id="submit" type="submit">제출하기</button></div>
   </form>
@@ -50,6 +51,9 @@
     </div>
     <div id="result" class="hidden"></div>
   </section>
+  <footer class="site-footer">
+    © 2026 인덕과학기술고등학교 · 업앤다운 숫자 맞추기 게임 수행평가 · <a href="/privacy.html"><b>개인정보 처리방침</b></a>
+  </footer>
 </main>
 <script>
 const $ = (id) => document.getElementById(id);
@@ -129,6 +133,7 @@ $("form").addEventListener("submit", async (e) => {
   if (!body.name) problems.push("이름을 입력하세요.");
   if (!body.code.trim()) problems.push("코드를 붙여 넣으세요.");
   if (!$("agree").checked) problems.push("확인 항목에 체크하세요.");
+  if (!$("privacy").checked) problems.push("개인정보 수집·이용에 동의해야 제출할 수 있습니다.");
   if (problems.length) { err.textContent = problems.join(" "); err.classList.remove("hidden"); return; }
 
   $("submit").disabled = true;
@@ -153,7 +158,7 @@ $("form").addEventListener("submit", async (e) => {
   setStep("st-save", "done");
   setStep("st-run", "done");
   renderTests(submission.tests);
-  ["sid", "name", "code", "file", "agree", "access"].forEach((id) => $(id).disabled = true);
+  ["sid", "name", "code", "file", "agree", "privacy", "access"].forEach((id) => $(id).disabled = true);
 
   setStep("st-ai", "active");
   const started = Date.now();

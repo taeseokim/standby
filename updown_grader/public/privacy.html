@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>개인정보 처리방침 | 업앤다운 숫자 맞추기 게임 수행평가</title>
+<style>
+  :root {
+    --bg: #f7f8fa;
+    --card: #ffffff;
+    --text: #1f2933;
+    --muted: #5f6b7a;
+    --line: #e3e7ed;
+    --accent: #2563eb;
+    --accent-soft: #eff4ff;
+    --fill: #fff3bf;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+    line-height: 1.75;
+    font-size: 15.5px;
+    word-break: keep-all;
+  }
+  header.top {
+    background: var(--card);
+    border-bottom: 1px solid var(--line);
+  }
+  header.top .inner {
+    max-width: 860px; margin: 0 auto; padding: 14px 20px;
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  }
+  header.top a { color: var(--text); text-decoration: none; font-weight: 600; }
+  header.top a.back { color: var(--accent); font-weight: 500; font-size: 14px; white-space: nowrap; }
+  main {
+    max-width: 860px; margin: 28px auto 60px; padding: 36px 40px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  .meta { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+  .meta span { display: inline-block; margin-right: 16px; }
+  .summary {
+    background: var(--accent-soft); border-radius: 10px; padding: 16px 20px; margin: 0 0 28px;
+  }
+  .summary strong { color: var(--accent); }
+  .summary ul { margin: 8px 0 0; padding-left: 20px; }
+  nav.toc {
+    border: 1px solid var(--line); border-radius: 10px; padding: 14px 20px; margin-bottom: 32px;
+  }
+  nav.toc h2 { font-size: 15px; margin: 0 0 6px; border: 0; padding: 0; }
+  nav.toc ol { margin: 0; padding-left: 20px; columns: 2; column-gap: 32px; font-size: 14.5px; }
+  nav.toc a { color: var(--text); text-decoration: none; }
+  nav.toc a:hover { color: var(--accent); text-decoration: underline; }
+  h2 {
+    font-size: 19px; margin: 40px 0 12px; padding-bottom: 8px;
+    border-bottom: 2px solid var(--line); scroll-margin-top: 16px;
+  }
+  h3 { font-size: 16px; margin: 20px 0 8px; }
+  p { margin: 8px 0; }
+  ul, ol { padding-left: 22px; }
+  li { margin: 4px 0; }
+  table {
+    width: 100%; border-collapse: collapse; margin: 12px 0 8px; font-size: 14.5px;
+  }
+  th, td { border: 1px solid var(--line); padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background: #f2f4f7; font-weight: 600; white-space: nowrap; }
+  .note { color: var(--muted); font-size: 14px; }
+  mark.fill { background: var(--fill); padding: 0 3px; border-radius: 3px; }
+  a { color: var(--accent); }
+  footer {
+    text-align: center; color: var(--muted); font-size: 13px; padding: 0 20px 40px;
+  }
+  @media (max-width: 640px) {
+    main { margin: 0; border-radius: 0; border-left: 0; border-right: 0; padding: 24px 18px; }
+    nav.toc ol { columns: 1; }
+    .table-wrap { overflow-x: auto; }
+    th { white-space: normal; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner">
+    <a href="/">업앤다운 숫자 맞추기 게임 수행평가</a>
+    <a class="back" href="/">← 제출 페이지</a>
+  </div>
+</header>
+
+<main>
+  <h1>개인정보 처리방침</h1>
+  <div class="meta">
+    <span>시행일: 2026년 11월 9일</span>
+    <span>운영자: 김태서 (인덕과학기술고등학교)</span>
+    <span>최종 수정: 2026년 11월 9일</span>
+    <span>서비스 주소: <a href="https://updown-grader.vercel.app/">https://updown-grader.vercel.app/</a></span>
+  </div>
+
+  <div class="summary">
+    <strong>한눈에 보기</strong>
+    <ul>
+      <li>회원가입 없이 <b>학번·이름·수업 코드·제출 코드</b>만 받습니다.</li>
+      <li>받은 정보는 <b>수행평가 채점과 성적 처리</b>에만 사용합니다.</li>
+      <li>채점을 위해 제출 코드를 <b>AI 채점 서비스</b>로 보냅니다. 이때 학번과 이름은 보내지 않습니다.</li>
+      <li>제출 기록은 <b>해당 학년도 성적 확정 후 6개월</b>이 지나면 파기합니다.</li>
+      <li><b>만 14세 이상</b> 학생만 이용합니다.</li>
+      <li>광고, 마케팅, 제3자 판매에는 사용하지 않습니다.</li>
+    </ul>
+  </div>
+
+  <nav class="toc" aria-label="목차">
+    <h2>목차</h2>
+    <ol>
+      <li><a href="#a1">총칙과 데이터 처리 구조</a></li>
+      <li><a href="#a2">처리하는 개인정보 항목</a></li>
+      <li><a href="#a3">처리 목적</a></li>
+      <li><a href="#a4">보유 기간과 파기</a></li>
+      <li><a href="#a5">제3자 제공</a></li>
+      <li><a href="#a6">처리 위탁과 국외 이전</a></li>
+      <li><a href="#a7">정보주체의 권리와 행사 방법</a></li>
+      <li><a href="#a8">만 14세 미만 아동의 개인정보</a></li>
+      <li><a href="#a9">안전성 확보 조치</a></li>
+      <li><a href="#a10">개인정보 보호책임자</a></li>
+      <li><a href="#a11">자동 수집 장치의 설치·운영과 거부</a></li>
+      <li><a href="#a12">권익침해 구제 방법</a></li>
+      <li><a href="#a13">처리방침의 변경</a></li>
+      <li><a href="#edzip">학습지원 SW 필수기준 대응표</a></li>
+    </ol>
+  </nav>
+
+  <!-- 제1조 -->
+  <h2 id="a1">제1조 (총칙과 데이터 처리 구조)</h2>
+  <p>「업앤다운 숫자 맞추기 게임 수행평가」(이하 "서비스")는 인덕과학기술고등학교 정보 수업에서 학생이 작성한 업앤다운 숫자 맞추기 게임 Python 프로그램을 제출받아 자동으로 실행하고 채점하는 학습지원 소프트웨어입니다. 운영자는 「개인정보 보호법」에 따라 이용자의 개인정보를 보호하고, 관련 고충을 신속하게 처리하기 위해 이 처리방침을 공개합니다.</p>
+  <ul>
+    <li><b>회원가입 없음:</b> 계정이나 비밀번호를 만들지 않습니다.</li>
+    <li><b>최소 수집:</b> 제출자를 확인하고 성적을 처리하는 데 꼭 필요한 정보만 받습니다. 연락처, 생년월일, 주소, 성별, 사진, 위치 정보 등은 받지 않습니다.</li>
+    <li><b>처리 흐름:</b> 제출 저장 → 테스트 입력으로 코드 실행 → AI 채점 → 결과 표시 → 교사 확인 순서로 처리합니다.</li>
+    <li><b>최종 점수:</b> AI 채점 결과는 참고 자료입니다. 최종 점수는 담당 교사가 채점 기준에 따라 확인하고 결정합니다.</li>
+    <li><b>이용하는 외부 서비스:</b> 웹 호스팅·코드 실행(Vercel, 서울 리전), 데이터 저장(Supabase, 서울 리전), AI 채점(OpenAI API, 미국)</li>
+    <li><b>코드 실행 위치:</b> 학생 코드는 외부 실행 서비스로 보내지 않고, 서비스 서버(Vercel 서울 리전) 안에서 시간·메모리 제한을 걸어 격리 실행합니다.</li>
+  </ul>
+
+  <!-- 제2조 -->
+  <h2 id="a2">제2조 (처리하는 개인정보 항목)</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>구분</th><th>항목</th><th>수집 방법</th></tr></thead>
+    <tbody>
+      <tr><td>필수 입력</td><td>학번, 이름, 수업 코드(교사가 설정한 경우)</td><td>제출 화면에서 학생이 직접 입력</td></tr>
+      <tr><td>제출물</td><td>Python 코드(직접 입력 또는 .py 파일), 본인 작성 확인 여부</td><td>제출 화면에서 학생이 직접 입력·업로드</td></tr>
+      <tr><td>처리 중 생성</td><td>제출 일시, 코드 실행 결과, AI 채점 결과(요소별 점수·근거·성취수준·피드백), 교사 확정 점수</td><td>채점 과정에서 자동 생성</td></tr>
+      <tr><td>자동 수집</td><td>접속 IP 주소, 접속 일시, 브라우저 정보 등 서버 접속 기록</td><td>호스팅 서비스(Vercel)가 보안·장애 대응을 위해 자동 기록</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">※ 제출 코드 안에 이름, 연락처 등 개인정보를 적지 마세요. 코드에 포함된 내용은 채점을 위해 그대로 실행되고 AI 채점 서비스(OpenAI)로 전송됩니다.</p>
+  <p class="note">※ 코드 실행에 쓰는 숫자 입력은 서비스가 정해 둔 테스트 입력이며, 학생에 관한 정보가 아닙니다.</p>
+
+  <!-- 제3조 -->
+  <h2 id="a3">제3조 (처리 목적)</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>항목</th><th>처리 목적</th></tr></thead>
+    <tbody>
+      <tr><td>학번, 이름</td><td>제출자 확인, 성적 기록, 중복·대리 제출 확인</td></tr>
+      <tr><td>수업 코드</td><td>수업(반)별 제출물 구분</td></tr>
+      <tr><td>제출 코드, 실행 결과</td><td>프로그램 자동 실행과 채점, 교사 검토</td></tr>
+      <tr><td>채점 결과, 제출 일시</td><td>수행평가 점수 산정, 결과 안내, 이의 신청 확인</td></tr>
+      <tr><td>접속 기록</td><td>서비스 장애 대응, 부정 이용 방지, 보안 유지</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>서비스는 「개인정보 보호법」 제15조제1항제1호에 따라 제출 화면에서 수집·이용 동의를 받은 뒤 개인정보를 처리합니다. 이용자는 동의를 거부할 수 있으며, 거부하면 이 서비스로 제출할 수 없으므로 담당 교사에게 다른 제출 방법을 요청할 수 있습니다. 거부로 인한 성적상의 불이익은 없습니다.</p>
+  <p>위 목적 외의 용도로는 이용하지 않으며, 목적이 바뀌면 「개인정보 보호법」 제18조에 따라 별도 동의를 받는 등 필요한 조치를 하겠습니다.</p>
+
+  <!-- 제4조 -->
+  <h2 id="a4">제4조 (보유 기간과 파기)</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>항목</th><th>보유 기간</th><th>파기 방법</th></tr></thead>
+    <tbody>
+      <tr><td>학번, 이름, 수업 코드, 제출 코드, 채점 결과</td><td>해당 학년도 성적 확정 후 6개월(이의 신청 처리 기간 포함)</td><td>데이터베이스에서 복구할 수 없도록 영구 삭제</td></tr>
+      <tr><td>접속 기록</td><td>호스팅 서비스(Vercel)의 로그 보관 정책에 따름</td><td>보관 기간이 지나면 자동 삭제</td></tr>
+      <tr><td>OpenAI API로 전송된 코드</td><td>OpenAI API 데이터 정책에 따름(오남용 감시 목적으로 최대 30일 보관, 모델 학습에 사용하지 않음)</td><td>보관 기간이 지나면 OpenAI가 삭제</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><b>파기 절차:</b> 보유 기간이 끝난 제출 기록은 운영자가 확인한 뒤 5일 이내에 파기하고, 파기 일시와 대상을 기록해 둡니다. 교사용 페이지에서 내려받은 성적 CSV 파일도 같은 시기에 함께 삭제합니다.</p>
+  <p>보유 기간이 끝나거나 처리 목적을 달성하면 지체 없이 파기합니다. 다만 다른 법령에 따라 보존해야 하는 경우에는 해당 기간 동안 별도로 분리하여 보관합니다.</p>
+
+  <!-- 제5조 -->
+  <h2 id="a5">제5조 (제3자 제공)</h2>
+  <ul>
+    <li>운영자는 이용자의 개인정보를 제3자에게 제공하지 않습니다.</li>
+    <li>다만 이용자가 동의한 경우, 또는 법령에 특별한 규정이 있는 경우에는 예외로 합니다.</li>
+    <li>서비스 운영을 위해 외부 업체에 처리를 맡기는 것은 제3자 제공이 아닌 <b>처리 위탁</b>이며, 제6조에서 안내합니다.</li>
+  </ul>
+
+  <!-- 제6조 -->
+  <h2 id="a6">제6조 (처리 위탁과 국외 이전)</h2>
+  <p>원활한 서비스 운영을 위해 아래와 같이 개인정보 처리 업무를 위탁합니다. 제출 정보의 저장과 코드 실행은 대한민국(서울) 서버에서 이루어지며, AI 채점을 위해 <b>제출 코드와 실행 결과만</b> 미국의 OpenAI로 이전됩니다(학번·이름은 이전하지 않음).</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>수탁 업체</th><th>위탁 업무</th><th>이전 항목</th><th>이전 국가</th><th>이전 시점·방법</th></tr></thead>
+    <tbody>
+      <tr><td>Vercel Inc.</td><td>웹사이트 호스팅, 서버 기능 실행(제출 처리·코드 실행)</td><td>제2조의 모든 항목(처리 과정), 접속 기록</td><td>대한민국(서울, icn1) — 화면 파일은 전 세계 CDN으로 전송</td><td>사이트 접속·제출 시 네트워크로 전송</td></tr>
+      <tr><td>Supabase Inc.</td><td>제출물과 채점 결과 저장</td><td>학번, 이름, 수업 코드, 제출 코드, 채점 결과, 제출 일시</td><td>대한민국(서울, ap-northeast-2)</td><td>제출 시 네트워크로 전송</td></tr>
+      <tr><td>OpenAI, L.L.C.</td><td>제출 코드 AI 채점</td><td>제출 코드, 실행 결과(학번·이름 제외)</td><td>미국</td><td>채점 단계에서 API로 전송</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">※ 국외 이전을 원하지 않으면 서비스를 이용하지 않을 수 있습니다. 이 경우 담당 교사에게 다른 제출 방법을 요청하세요.</p>
+
+  <!-- 제7조 -->
+  <h2 id="a7">제7조 (정보주체의 권리와 행사 방법)</h2>
+  <p>이용자(학생)와 그 법정대리인(보호자)은 언제든지 개인정보의 열람, 정정, 삭제, 처리정지와 동의 철회를 요구할 수 있습니다.</p>
+  <ol>
+    <li><b>요청 방법:</b> 제10조의 개인정보 보호책임자에게 이메일로 요청하거나 담당 교사에게 직접 말합니다. 학번, 이름, 요청 내용을 적어 주세요.</li>
+    <li><b>본인 확인:</b> 학번과 이름, 수업 코드로 본인임을 확인합니다. 대리인은 위임장 등으로 권한을 확인합니다.</li>
+    <li><b>처리 기한:</b> 요청을 받은 날부터 10일 이내에 조치하고 결과를 알려드립니다.</li>
+    <li><b>정정:</b> 학번·이름이 잘못 입력된 경우 바로 정정합니다. 제출 코드는 평가의 공정성을 위해 제출 후 수정할 수 없으며, 필요하면 담당 교사가 재제출 여부를 판단합니다.</li>
+  </ol>
+  <p>다만 이미 확정된 성적 기록과 같이 법령이나 학교 학업성적관리규정에 따라 보존해야 하는 정보는 삭제가 제한될 수 있으며, 이 경우 그 사유를 알려드립니다.</p>
+
+  <!-- 제8조 -->
+  <h2 id="a8">제8조 (만 14세 미만 아동의 개인정보)</h2>
+  <p>이 서비스는 인덕과학기술고등학교 학생의 수업용으로 운영하며, <b>만 14세 이상</b>만 이용할 수 있습니다. 만 14세 미만 아동의 개인정보는 수집하지 않습니다. 만 14세 미만 학생이 이용해야 하는 경우에는 「개인정보 보호법」 제22조의2에 따라 법정대리인의 동의를 먼저 받으며, 동의 없이 수집된 사실을 알게 되면 즉시 삭제합니다.</p>
+
+  <!-- 제9조 -->
+  <h2 id="a9">제9조 (안전성 확보 조치)</h2>
+  <ul>
+    <li><b>관리적 조치:</b> 개인정보 처리자를 운영자와 담당 교사로 제한, 수업 코드로 반별 접근 구분</li>
+    <li><b>내부 관리:</b> 운영자가 개인정보 보호 관리 사항을 정해 연 1회 이상 점검</li>
+    <li><b>암호화:</b> 전송 구간은 HTTPS(TLS)로 암호화하고, 데이터베이스(Supabase)에 저장된 정보는 저장 시 암호화(AES-256)</li>
+    <li><b>접근 통제:</b> 교사용 페이지는 교사 비밀번호를 입력해야만 열람 가능, 데이터베이스는 행 수준 보안(RLS)으로 잠그고 서버만 아는 비밀값이 있어야 읽고 쓸 수 있게 제한(학생 화면에서는 다른 학생의 제출물을 조회할 수 없음)</li>
+    <li><b>코드 실행 격리:</b> 학생 코드는 실행 시간·메모리·파일 크기를 제한하고 서버 환경변수(비밀 키)를 차단한 상태로 실행</li>
+    <li><b>비밀 정보 관리:</b> 데이터베이스 키와 OpenAI API 키는 서버 환경 변수로만 보관하고 브라우저에 노출하지 않음</li>
+    <li><b>접속 기록:</b> 호스팅·데이터베이스 서비스의 접속 기록을 보관해 부정 접근 여부를 확인</li>
+    <li><b>최소 전송:</b> AI 채점 서비스에는 채점에 필요한 코드와 실행 결과만 보내고 학번·이름은 보내지 않음</li>
+    <li><b>물리적 조치:</b> 서버와 데이터는 위탁 업체의 보안 시설에서 관리</li>
+  </ul>
+
+  <!-- 제10조 -->
+  <h2 id="a10">제10조 (개인정보 보호책임자)</h2>
+  <p>개인정보 처리에 관한 문의, 불만 처리, 피해 구제는 아래 책임자에게 연락해 주세요.</p>
+  <div class="table-wrap">
+  <table>
+    <tbody>
+      <tr><th>성명</th><td>김태서</td></tr>
+      <tr><th>소속·직위</th><td>인덕과학기술고등학교</td></tr>
+      <tr><th>이메일</th><td><a href="mailto:kimtaeseo@naver.com">kimtaeseo@naver.com</a></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">※ 국내대리인 지정 대상이 아니므로 국내대리인은 두지 않습니다.</p>
+  <p><b>유출 시 조치:</b> 개인정보 유출을 알게 되면 「개인정보 보호법」 제34조에 따라 72시간 이내에 해당 학생과 보호자, 학교에 유출 항목·시점·경위와 대응 방법을 알리고, 필요한 경우 개인정보보호위원회 또는 한국인터넷진흥원에 신고합니다.</p>
+
+  <!-- 제11조 -->
+  <h2 id="a11">제11조 (자동 수집 장치의 설치·운영과 거부)</h2>
+  <ul>
+    <li>서비스는 광고나 행태 분석을 위한 쿠키, 분석 도구(Google Analytics 등)를 사용하지 않습니다.</li>
+    <li>브라우저 설정에서 쿠키와 사이트 데이터를 삭제하거나 차단할 수 있습니다.</li>
+  </ul>
+
+  <!-- 제12조 -->
+  <h2 id="a12">제12조 (권익침해 구제 방법)</h2>
+  <p>개인정보 침해로 인한 구제를 받기 위해 아래 기관에 분쟁 해결이나 상담을 신청할 수 있습니다.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>기관</th><th>연락처</th><th>홈페이지</th></tr></thead>
+    <tbody>
+      <tr><td>개인정보분쟁조정위원회</td><td>(국번없이) 1833-6972</td><td><a href="https://www.kopico.go.kr" target="_blank" rel="noopener">www.kopico.go.kr</a></td></tr>
+      <tr><td>개인정보침해신고센터</td><td>(국번없이) 118</td><td><a href="https://privacy.kisa.or.kr" target="_blank" rel="noopener">privacy.kisa.or.kr</a></td></tr>
+      <tr><td>대검찰청</td><td>(국번없이) 1301</td><td><a href="https://www.spo.go.kr" target="_blank" rel="noopener">www.spo.go.kr</a></td></tr>
+      <tr><td>경찰청</td><td>(국번없이) 182</td><td><a href="https://ecrm.police.go.kr" target="_blank" rel="noopener">ecrm.police.go.kr</a></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <!-- 제13조 -->
+  <h2 id="a13">제13조 (처리방침의 변경)</h2>
+  <p>이 처리방침의 내용을 추가, 삭제, 수정하는 경우 시행 7일 전부터 서비스 화면을 통해 알립니다. 수집 항목이나 위탁 업체가 바뀌는 등 이용자 권리에 중요한 변경이 있으면 시행 30일 전에 알립니다.</p>
+  <ul>
+    <li>공고일: 2026년 11월 9일</li>
+    <li>시행일: 2026년 11월 9일</li>
+  </ul>
+
+  <h2 id="edzip">학습지원 소프트웨어 필수기준 대응표</h2>
+  <p class="note">「학교의 안전하고 효과적인 학습지원 소프트웨어 선정을 위한 기준」(교육부, 2025.12.)의 필수기준별로 이 방침의 해당 조항을 정리했습니다.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>필수기준</th><th>확인 내용</th><th>해당 조항</th></tr></thead>
+    <tbody>
+      <tr><td>① 최소 처리원칙 준수</td><td>수집·이용 목적, 수집 항목, 보유 기간 기재 / 필요한 최소 정보만 수집</td><td>제1조, 제2조, 제3조, 제4조</td></tr>
+      <tr><td>② 개인정보 안전조치 의무</td><td>안전성 확보 조치 기재</td><td>제9조</td></tr>
+      <tr><td>③ 열람·정정·삭제·처리정지 절차</td><td>권리 행사 방법과 처리 절차 안내</td><td>제7조</td></tr>
+      <tr><td>④ 만 14세 미만 아동의 개인정보 보호</td><td>아동 개인정보 처리 기준과 법정대리인 동의 안내</td><td>제8조</td></tr>
+      <tr><td>⑤ 보호책임자·제3자 제공·위탁 등</td><td>보호책임자 정보, 제3자 제공 여부, 위·수탁 정보 기재</td><td>제5조, 제6조, 제10조</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>관련 법령 및 외부 서비스 정책</h2>
+  <ul>
+    <li><a href="https://www.law.go.kr/법령/개인정보보호법" target="_blank" rel="noopener">개인정보 보호법</a></li>
+    <li><a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener">Vercel 개인정보 처리방침</a></li>
+    <li><a href="https://supabase.com/privacy" target="_blank" rel="noopener">Supabase 개인정보 처리방침</a></li>
+    <li><a href="https://openai.com/policies/privacy-policy/" target="_blank" rel="noopener">OpenAI 개인정보 처리방침</a> · <a href="https://openai.com/enterprise-privacy/" target="_blank" rel="noopener">OpenAI API 데이터 정책</a></li>
+  </ul>
+</main>
+
+<footer>
+  © 2026 업앤다운 숫자 맞추기 게임 수행평가 · <a href="/privacy.html">개인정보 처리방침</a>
+</footer>
+
+</body>
+</html>
